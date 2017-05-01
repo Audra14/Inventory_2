@@ -1,0 +1,163 @@
+<div class="region-inner region-content-inner">
+    <a id="main-content"></a>
+    <h1 class="title" id="page-title">Review Inventory Records</h1>
+    <section class="block block-labcentral-contact-records block-contact-record-form block-labcentral-contact-records-contact-record-form odd" id="block-labcentral-contact-records-contact-record-form">
+        <div class="block-inner clearfix">
+            <div class="content clearfix">
+                <p>
+                    Select Lab:
+                    <select ng-model="selectedLab">
+                        <option ng-repeat="lab_name in items | orderBy:'lab_name' | unique_labs:'lab_name'">{{lab_name}}</option>
+                    </select>
+                    Select Date:
+                    <select ng-model="selectedDate">
+                        <option ng-repeat="date in items | orderBy:'date':true | unique_labs: 'date'">{{date}}</option>
+                    </select>
+
+                </p>
+
+                <!-- This form is working if both name and date are selected -->
+                <form ng-if="selectedLab != undefined && selectedDate != undefined">
+                    <table>
+                        <tr>
+                            <th></th>
+                            <th>Item</th>
+                            <th>New</th>
+                            <th>Used</th>
+                            <th>Date</th>
+                            <th>LabCon</th>
+                            <th>Target</th>
+                            <th>Order Amount</th>
+                            <th></th>
+                            <th></th>
+                        </tr>
+
+                        <tr ng-repeat="item in items | orderBy:'date':true">
+                            <td ng-show="!toggle && (selectedLab == item.lab_name && selectedDate == item.date)"><button ng-click = "toggle = !toggle">Edit</button></td>
+                            <td ng-show="toggle"></td>
+                            <div>
+                                <td ng-show="toggle && (selectedLab == item.lab_name && selectedDate == item.date)">{{item.item}}</td>
+                                <td ng-show="toggle && (selectedLab == item.lab_name && selectedDate == item.date)"><input type="number" ng-model="formData.qnew"  placeholder="{{item.qty_new}}" class="input_tiny"></td>
+                                <td ng-show="toggle && (selectedLab == item.lab_name && selectedDate == item.date)"><input type="number" ng-model="formData.qused" placeholder="{{item.qty_used}}" class="input_tiny"></td>
+                                <td ng-show="toggle && (selectedLab == item.lab_name && selectedDate == item.date)">{{item.date}}</td>
+                                <td ng-show="toggle && (selectedLab == item.lab_name && selectedDate == item.date)">{{item.submitted_by}}</td>
+                                <td ng-show="toggle && (selectedLab == item.lab_name && selectedDate == item.date)">{{item.max_target}}</td>
+                                <td ng-show="toggle && (selectedLab == item.lab_name && selectedDate == item.date)">{{getOrderAmount(item._id)}}</td>
+                                <td ng-show="toggle && (selectedLab == item.lab_name && selectedDate == item.date)"><button ng-click="update(item._id, item.lab_group, item.lab_name, item.item, item.date, item.submitted_by)">Save</button></td>
+                                <td ng-show="toggle && (selectedLab == item.lab_name && selectedDate == item.date)"><button ng-click="toggle=!toggle">Cancel</button></td>
+
+                                <td ng-show="!toggle && (selectedLab == item.lab_name && selectedDate == item.date)">{{item.item}}</td>
+                                <td ng-show="!toggle && (selectedLab == item.lab_name && selectedDate == item.date)">{{item.qty_new}}</td>
+                                <td ng-show="!toggle && (selectedLab == item.lab_name && selectedDate == item.date)">{{item.qty_used}}</td>
+                                <td ng-show="!toggle && (selectedLab == item.lab_name && selectedDate == item.date)">{{item.date}}</td>
+                                <td ng-show="!toggle && (selectedLab == item.lab_name && selectedDate == item.date)">{{item.submitted_by}}</td>
+                                <td ng-show="!toggle && (selectedLab == item.lab_name && selectedDate == item.date)">{{item.max_target}}</td>
+                                <td ng-show="!toggle && (selectedLab == item.lab_name && selectedDate == item.date)">{{getOrderAmount(item._id)}}</td>
+                                <td ng-show="!toggle && (selectedLab == item.lab_name && selectedDate == item.date)"></td>
+                                <td ng-show="!toggle && (selectedLab == item.lab_name && selectedDate == item.date)"></td>
+
+                            </div>
+                        </tr>
+                    </table>
+                </form>
+
+                <!-- This form is working if only lab name is selected -->
+                <form ng-if="selectedLab != undefined && selectedDate == undefined">
+                    <table>
+                        <tr>
+                            <th></th>
+                            <th>Item</th>
+                            <th>New</th>
+                            <th>Used</th>
+                            <th>Date</th>
+                            <th>LabCon</th>
+                            <th>Target</th>
+                            <th>Order Amount</th>
+                            <th></th>
+                            <th></th>
+
+                            <tr ng-repeat="item in items | orderBy:'date':true">
+                                <td ng-show="!toggle && selectedLab == item.lab_name"><button ng-click = "toggle = !toggle">Edit</button></td>
+                                <td ng-show="toggle"></td>
+                                <div>
+                                    <td ng-show="toggle && selectedLab == item.lab_name">{{item.item}}</td>
+                                    <td ng-show="toggle && selectedLab == item.lab_name"><input type="number" ng-model="formData.qnew"  placeholder="{{item.qty_new}}" class="input_tiny"></td>
+                                    <td ng-show="toggle && selectedLab == item.lab_name"><input type="number" ng-model="formData.qused" placeholder="{{item.qty_used}}" class="input_tiny"></td>
+                                    <td ng-show="toggle && selectedLab == item.lab_name">{{item.date}}</td>
+                                    <td ng-show="toggle && selectedLab == item.lab_name">{{item.submitted_by}}</td>
+                                    <td ng-show="toggle && selectedLab == item.lab_name">{{item.max_target}}</td>
+                                    <td ng-show="toggle && selectedLab == item.lab_name">{{getOrderAmount(item._id)}}</td>
+                                    <td ng-show="toggle && selectedLab == item.lab_name"><button ng-click="update(item._id, item.lab_group, item.lab_name, item.item, item.date, item.submitted_by)">Save</button></td>
+                                    <td ng-show="toggle && selectedLab == item.lab_name"><button ng-click="toggle=!toggle">Cancel</button></td>
+
+                                    <td ng-show="!toggle && selectedLab == item.lab_name">{{item.item}}</td>
+                                    <td ng-show="!toggle && selectedLab == item.lab_name">{{item.qty_new}}</td>
+                                    <td ng-show="!toggle && selectedLab == item.lab_name">{{item.qty_used}}</td>
+                                    <td ng-show="!toggle && selectedLab == item.lab_name">{{item.date}}</td>
+                                    <td ng-show="!toggle && selectedLab == item.lab_name">{{item.submitted_by}}</td>
+                                    <td ng-show="!toggle && selectedLab == item.lab_name">{{item.max_target}}</td>
+                                    <td ng-show="!toggle && selectedLab == item.lab_name">{{getOrderAmount(item._id)}}</td>
+                                    <td ng-show="!toggle && selectedLab == item.lab_name"></td>
+                                    <td ng-show="!toggle && selectedLab == item.lab_name"></td>
+
+                                </div>
+                            </tr>
+                        </tr>
+                    </table>
+                </form>
+
+                <!-- This one works only dates are selected -->
+                <form ng-if="selectedLab == undefined && selectedDate != undefined">
+                    <table>
+                        <tr>
+                            <th></th>
+                            <th></th>
+                            <th>Item</th>
+                            <th>New</th>
+                            <th>Used</th>
+                            <th>Date</th>
+                            <th>LabCon</th>
+                            <th>Target</th>
+                            <th>Order Amount</th>
+                            <th></th>
+                            <th></th>
+                        </tr>
+
+                        <tr ng-repeat="item in items | orderBy:'date':true">
+                            <td ng-show="!toggle && selectedDate == item.date"><button ng-click = "toggle = !toggle">Edit</button></td>
+
+                            <td ng-show="toggle"></td>
+                            <div>
+                                <td ng-show="toggle && selectedDate == item.date"><b>{{item.lab_name}}</b></td>
+                                <td ng-show="toggle && selectedDate == item.date">{{item.item}}</td>
+                                <td ng-show="toggle && selectedDate == item.date"><input type="number" ng-model="formData.qnew"  placeholder="{{item.qty_new}}" class="input_tiny"></td>
+                                <td ng-show="toggle && selectedDate == item.date"><input type="number" ng-model="formData.qused" placeholder="{{item.qty_used}}" class="input_tiny"></td>
+                                <td ng-show="toggle && selectedDate == item.date">{{item.date}}</td>
+                                <td ng-show="toggle && selectedDate == item.date">{{item.submitted_by}}</td>
+                                <td ng-show="toggle && selectedDate == item.date">{{item.max_target}}</td>
+                                <td ng-show="toggle && selectedDate == item.date">{{getOrderAmount(item._id)}}</td>
+                                <td ng-show="toggle && selectedDate == item.date"><button ng-click="update(item._id, item.lab_group, item.lab_name, item.item, item.date, item.submitted_by)">Save</button></td>
+                                <td ng-show="toggle && selectedDate == item.date"><button ng-click="toggle=!toggle">Cancel</button></td>
+
+                                <td ng-show="!toggle && selectedDate == item.date"><b>{{item.lab_name}}</b></td>
+                                <td ng-show="!toggle && selectedDate == item.date">{{item.item}}</td>
+                                <td ng-show="!toggle && selectedDate == item.date">{{item.qty_new}}</td>
+                                <td ng-show="!toggle && selectedDate == item.date">{{item.qty_used}}</td>
+                                <td ng-show="!toggle && selectedDate == item.date">{{item.date}}</td>
+                                <td ng-show="!toggle && selectedDate == item.date">{{item.submitted_by}}</td>
+                                <td ng-show="!toggle && selectedDate == item.date">{{item.max_target}}</td>
+                                <td ng-show="!toggle && selectedDate == item.date">{{getOrderAmount(item._id)}}</td>
+                                <td ng-show="!toggle && selectedDate == item.date"></td>
+                                <td ng-show="!toggle && selectedDate == item.date"></td>
+
+                            </div>
+                        </tr>
+
+                    </table>
+                </form>
+
+            </div>
+        </div>
+    </section>
+
+</div>

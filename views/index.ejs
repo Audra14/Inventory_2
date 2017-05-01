@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html ng-app="app">
+<head>
+  <title><%= title %></title>
+  <link rel='stylesheet' href='/stylesheets/style.css' />
+</head>
+<body>
+<!--<h1><%= title %></h1>-->
+
+<ng-view></ng-view>
+
+<!-- Libraries -->
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular-route.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular-resource.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+
+<!-- Template -->
+
+<script type="text/ng-template" id="/initial.html">
+
+    <header>
+        <% include header%>
+    </header>
+
+    <aside class="grid-3 region region-sidebar-first" id="region-sidebar-first">
+        <% include aside%>
+    </aside>
+
+    <div class="grid-9 region region-content" id="region-content">
+        <% include initial%>
+    </div>
+    <footer id="section-footer" class="section section-footer">
+        <% include footer%>
+    </footer>
+
+</script>
+
+<script type="text/ng-template" id="/newrecord.html">
+
+    <header id="section-header" class="section section-header">
+        <% include header%>
+    </header>
+
+    <aside class="grid-3 region region-sidebar-first" id="region-sidebar-first">
+        <% include aside%>
+    </aside>
+
+    <div class="grid-9 region region-content" id="region-content" data-ng-init="clean()">
+        <% include newrecord%>
+    </div>
+    <footer id="section-footer" class="section section-footer">
+        <% include footer%>
+    </footer>
+
+</script>
+
+<script type="text/ng-template" id="/reviewrecords.html">
+
+    <header id="section-header" class="section section-header">
+        <% include header%>
+    </header>
+
+    <aside class="grid-3 region region-sidebar-first" id="region-sidebar-first">
+        <% include aside%>
+    </aside>
+
+    <div class="grid-9 region region-content" id="region-content">
+        <% include reviewrecords%>
+    </div>
+
+    <footer id="section-footer" class="section section-footer">
+        <% include footer%>
+    </footer>
+</script>
+
+<script>
+    angular.module('app', ['ngRoute', 'ngResource'])
+
+    //---------------
+    // Services
+    //---------------
+
+        .factory('Items', ['$resource', function($resource){
+            return $resource('/items/:id', null, {
+                'update': { method:'PUT' }
+            });
+        }])
+
+        //--------------
+        // Filter
+        //--------------
+
+        .filter('unique', function(){
+            return function(collection, keyname, secondaryKey){
+                var output = [],
+                    keys = [];
+
+                angular.forEach(collection, function(item){
+
+                    var key = item[keyname];
+
+                    if(keys.indexOf(key) === -1 && item.lab_id == secondaryKey){
+                        keys.push(key);
+
+                        output.push(item);
+                    }
+                });
+
+                return keys;
+            };
+        })
+
+        .filter('unique_labs', function(){
+            return function(collection, keyname){
+
+                var output = [],
+                    keys = [];
+
+                angular.forEach(collection, function(item){
+
+                    var key = item[keyname];
+
+                    if(keys.indexOf(key) === -1){
+                        keys.push(key);
+
+                        output.push(item);
+                    }
+                });
+                return keys;
+            };
+
+        })
+
+
+
+        //---------------
+        // Controllers
+        //---------------
+
+        .controller('NewRecordController', ['$scope', 'Items', '$route', '$routeParams', function($scope, Items, $route, $routeParams){
+            $scope.formData = {};
+            $scope.editing = [];
+            $scope.items = Items.query();
+            $scope.lookupId = $routeParams.lab_id;
+            $scope.userId = $routeParams.user_id;
+            $scope.displayName = $routeParams.lab_name;
+
+            $scope.save = function(index){
+
+                var itemObj = $scope.items;
+                var quantityNew = $scope.formData.qnew;
+                var quantityUsed = $scope.formData.qused;
+                var date = new Date();
+                var formattedDate = date.getMonth()+1 + "/" + date.getDate() + "/" + date.getFullYear().toString().substring(2,4);
+                var inputLength = Object.keys(quantityNew[""]).length;
+                var itemsArray = [inputLength];
+
+                var quantityNewKeysArray = Object.keys(quantityNew[""]);
+                var quantityUsedKeysArray = Object.keys(quantityUsed[""]);
+
+                var item = itemObj[quantityNewKeysArray[0]][0];
+
+                for(var i = 0; i < inputLength; i++){
+
+                    if(quantityNewKeysArray[i] == quantityUsedKeysArray[i]){
+                        var info = new Items ({
+                            lab_id: $scope.lookupId,
+                            lab_group: itemObj[quantityNewKeysArray[i]].lab_group,
+                            lab_name: $routeParams.lab_name,
+                            item : itemObj[quantityNewKeysArray[i]].item,
+                            qty_new : quantityNew[""][quantityNewKeysArray[i]],
+                            qty_used : quantityUsed[""][quantityUsedKeysArray[i-1]],
+                            max_target : itemObj[quantityNewKeysArray[i]].max_target,
+                            min_target : itemObj[quantityNewKeysArray[i]].min_target,
+                            submitted_by: $scope.userId,
+                            date: formattedDate
+                        });
+                    } else if (quantityUsedKeysArray[i] == undefined) {
+                        var info = new Items ({
+                            lab_id: $scope.lookupId,
+                            lab_group: itemObj[quantityNewKeysArray[i]].lab_group,
+                            lab_name: $routeParams.lab_name,
+                            item : itemObj[quantityNewKeysArray[i]].item,
+                            qty_new : quantityNew[""][quantityNewKeysArray[i]],
+                            qty_used : quantityUsed[""][quantityUsedKeysArray[i-1]],
+                            max_target : itemObj[quantityNewKeysArray[i]].max_target,
+                            min_target : itemObj[quantityNewKeysArray[i]].min_target,
+                            submitted_by: $scope.userId,
+                            date: formattedDate
+                        });
+                    } else {
+                        var info = new Items ({
+                            lab_id: $scope.lookupId,
+                            lab_group: itemObj[quantityNewKeysArray[i]].lab_group,
+                            lab_name: $routeParams.lab_name,
+                            item : itemObj[quantityNewKeysArray[i]].item,
+                            qty_new : quantityNew[""][quantityNewKeysArray[i]],
+                            qty_used : 0,
+                            max_target : itemObj[quantityNewKeysArray[i]].max_target,
+                            min_target : itemObj[quantityNewKeysArray[i]].min_target,
+                            submitted_by: $scope.userId,
+                            date: formattedDate
+                        });
+                    }
+
+                    itemsArray[i] = info;
+
+                    itemsArray[i].$save(function(){
+                        $scope.items.push(itemsArray[i]);
+                    })
+
+                }
+
+                window.location="https://labconsulting.sas.psu.edu/labcentral/labtrack";
+            }
+
+
+        }])
+
+        .controller('ItemController', ['$scope', 'Items', '$route', '$routeParams', function ($scope, Items, $route, $routeParams, req, res) {
+            $scope.formData = {};
+
+            $scope.editing = [];
+            //$scope.items = Items.query();
+            $scope.items = [];
+            $scope.labList = [];
+            $scope.itemList = [];
+            var allItems = Items.query(function(){
+                var first = allItems[0];
+                console.log("First lab = ", first.lab_name);
+
+                //
+                // Create a list of all labs
+                //
+                angular.forEach(allItems, function(item){
+                    console.log("in foreach function");
+                    if($scope.labList.indexOf(item.lab_name) == -1){
+                        $scope.labList.push(item.lab_name);
+                    }
+                });
+
+                //
+                // Create a list of all Item Names
+                //
+                angular.forEach(allItems, function(n){
+                    console.log("in foreach function");
+                    if($scope.itemList.indexOf(n.item) == -1){
+                        $scope.itemList.push(n.item);
+                    }
+                });
+
+                $scope.items = allItems;
+
+                //$scope.labList.sort();
+                //$scope.itemList.sort();
+
+            });
+
+            $scope.itemId = Items.get({lab_id: $routeParams});
+
+            $scope.lookupId = $routeParams.lab_id;
+            $scope.cleanItems = [];
+            $scope.orderAmt;
+            $scope.selectedLab;
+            $scope.selectedDate;
+
+            $scope.newRecordValues = function(){
+
+                var count = 0;
+                var id = 0;
+                var name;
+                angular.forEach($scope.items, function(){
+                    count++;
+                })
+
+                for(var i = 0; i < count; i++){
+                    if($scope.items[i].lab_name == $scope.selectedLab){
+                        name = $scope.items[i].lab_name;
+                        id = $scope.items[i].lab_id;
+                        break;
+                    }
+                }
+                var path = '/#/labcentral/' + id + '/' + name + '/' + $scope.user_id;
+                window.location = path;
+            }
+
+
+            $scope.getOrderAmount = function (index){
+
+                var count = 0;
+                angular.forEach($scope.items, function(){
+                    count++;
+                })
+                for(var i = 0; i < count; i++) {
+
+                    if($scope.items[i]._id == index && $scope.items[i].item.indexOf('Paper') != -1){
+
+                        var amtNew = $scope.items[i].qty_new;
+                        var upperLim = $scope.items[i].max_target;
+
+                        if(amtNew == upperLim){
+                            $scope.orderAmt = 0;
+                        } else if (amtNew > upperLim){
+                            $scope.orderAmt = 0;
+                        } else if (amtNew < upperLim){
+                            $scope.orderAmt = Math.floor((upperLim - amtNew) / 10);
+                        }
+                        return $scope.orderAmt;
+
+                    }
+
+                    if($scope.items[i]._id == index && $scope.items[i].item.indexOf('Paper') == -1){
+
+                        var amtNew = $scope.items[i].qty_new;
+                        var upperLim = $scope.items[i].max_target;
+
+                        if(amtNew == upperLim){
+                            $scope.orderAmt = 0;
+                        } else if (amtNew > upperLim){
+                            $scope.orderAmt = 0;
+                        } else if (amtNew < upperLim){
+                            $scope.orderAmt = Math.floor(upperLim - amtNew);
+                        }
+                        return $scope.orderAmt;
+
+                    }
+
+                }
+            }
+
+            $scope.update = function(index, lab_group, lab_name, item_name, date, submittedBy){
+
+                var item = $scope.items[index];
+
+                Items.update({id: index} , {lab_group: lab_group, lab_name: lab_name, item: item_name,
+                    qty_new: $scope.formData.qnew , qty_used: $scope.formData.qused, submitted_by: submittedBy, date: date}, item);
+                $route.reload();
+            }
+
+            $scope.edit = function(index){
+                $scope.editing[index] = angular.copy($scope.items[index]);
+            }
+
+            $scope.remove = function(index){
+                var item = $scope.items[index];
+                Items.remove({lab_id: item.lab_id}, function(){
+                    $scope.items.splice(index, 1);
+                });
+            }
+
+
+
+
+        }])
+
+
+        //---------------
+        // Routes
+        //---------------
+
+        .config(['$routeProvider', function ($routeProvider) {
+            $routeProvider
+                .when('/labcentral/reviewrecords', {
+                    templateUrl: '/reviewrecords.html',
+                    controller: 'ItemController',
+                    filter: 'unique_labs'
+                })
+
+                .when('/labcentral/:lab_id/:lab_name/:user_id', {
+                    templateUrl: '/newrecord.html',
+                    controller: 'NewRecordController',
+                    filter: 'unique'
+                })
+
+                .when('/labcentral/inventory', {
+                    templateUrl: '/initial.html',
+                    controller: 'ItemController',
+                    filter: 'unique_labs'
+                });
+
+        }]);
+</script>
+</body>
+</html>
+

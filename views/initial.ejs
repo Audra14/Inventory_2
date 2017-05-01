@@ -1,0 +1,24 @@
+<div class="region-inner region-content-inner">
+    <a id="main-content"></a>
+    <h1 class="title" id="page-title">Inventory</h1>
+    <section class="block block-labcentral-contact-records block-contact-record-form block-labcentral-contact-records-contact-record-form odd" id="block-labcentral-contact-records-contact-record-form">
+
+        <div class="block-inner clearfix">
+            <div class="content clearfix">
+                <p>Select Lab:
+                <select ng-model="selectedLab">
+                    <option ng-repeat="lab_name in items | orderBy:'lab_name' | unique_labs:'lab_name'">{{lab_name}}</option>
+                </select>
+                </p>
+                <form ng-submit="newRecordValues()">
+                    <p>Enter Access Id:
+                        <input name="user_id" ng-model="user_id" placeholder="abc1234">
+                        <input type = "submit" value="Go"/>
+                    </p>
+
+                </form>
+            </div>
+        </div>
+    </section>
+
+</div>
